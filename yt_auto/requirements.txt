@@ -1,0 +1,4 @@
+anthropic>=0.40
+edge-tts>=6.1
+requests>=2.31
+pillow>=10
