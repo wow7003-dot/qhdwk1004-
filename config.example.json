@@ -1,0 +1,6 @@
+{
+  "niche": "역사·미스터리·과학·경제 상식",
+  "minutes": 8,
+  "tts": {"voice": "ko-KR-SunHiNeural"},
+  "keys": {"gemini": "", "groq": "", "giphy": ""}
+}

@@ -1,0 +1,6 @@
+output/
+config.json
+__pycache__/
+*.pyc
+.venv/
+assets/_cache/
