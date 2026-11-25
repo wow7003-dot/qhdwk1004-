@@ -1,0 +1,5 @@
+config.json
+projects/
+fonts/
+__pycache__/
+.venv/
