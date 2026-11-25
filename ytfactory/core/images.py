@@ -137,4 +137,6 @@ def make_image(s: Settings, prompt: str, out: Path, seed: int, label: str = "") 
         except Exception as e:
             errors.append(f"{name}: {e}")
     placeholder(prompt, out, w, h, seed, label)
+    if s.image_provider != "placeholder":
+        print("⚠️ 이미지 생성 실패 → 임시 배경 사용. 원인:", " | ".join(e[:150] for e in errors[:2]), flush=True)
     return "placeholder"
