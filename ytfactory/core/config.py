@@ -1,11 +1,13 @@
 """설정 저장/로드. API 키는 로컬 config.json 에만 저장된다 (git 에는 올리지 않음)."""
 import json
+import os
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CONFIG_PATH = ROOT / "config.json"
-PROJECTS_DIR = ROOT / "projects"
+# 코랩에서는 구글 드라이브에 저장되도록 환경변수로 위치를 바꿀 수 있다
+CONFIG_PATH = Path(os.environ.get("YTF_CONFIG", ROOT / "config.json"))
+PROJECTS_DIR = Path(os.environ.get("YTF_PROJECTS_DIR", ROOT / "projects"))
 FONTS_DIR = ROOT / "fonts"
 
 

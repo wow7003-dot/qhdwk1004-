@@ -17,6 +17,23 @@
 
 > 한 가지라도 실패하면 다음 무료 소스로 자동으로 넘어갑니다. 이미지가 모두 실패하면 단색 배경을 넣고, 나중에 그 장면만 🔄 버튼으로 다시 만들 수 있어요.
 
+## 📱 핸드폰에서 쓰기 (PC 없이, 무료)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/wow7003-dot/qhdwk1004-/blob/main/ytfactory/colab.ipynb)
+
+1. 핸드폰 크롬에서 위 **Open in Colab** 버튼을 누르고 구글 계정으로 로그인하세요.
+2. **① 준비 → ② 설정 → ③ 간단 모드** 순서로 각 칸의 ▶를 누르세요. ③ 대신 **④ 화면 모드**를 쓰면 PC와 똑같은 화면이 열립니다.
+3. 결과물은 구글 드라이브 `내 드라이브/유튜브공장` 폴더에 저장돼요.
+
+> 만드는 동안 화면을 오래 끄면 무료 코랩이 끊길 수 있어요.
+
+**PC를 켜둔 채 핸드폰으로 조작**할 수도 있어요. PC에서 실행하면 나오는 `Network URL`(http://192.168.x.x:8501)을 같은 와이파이에 연결된 핸드폰 브라우저에 입력하세요. 첫 실행 때 Windows 방화벽 창이 뜨면 "허용"을 누르세요.
+
+## 다운로드
+
+1. https://github.com/wow7003-dot/qhdwk1004- 에서 초록색 **`<> Code` → Download ZIP**을 누르세요.
+2. 받은 ZIP 파일을 우클릭해서 **압축 풀기** → `ytfactory` 폴더로 들어가세요.
+
 ## 설치 (처음 한 번)
 
 1. **Python 3.10 이상**을 설치하세요. Windows에서는 설치할 때 "Add to PATH"를 체크하세요.
