@@ -7,9 +7,17 @@ from .config import Settings
 CHARS_PER_MIN = 330  # 한국어 TTS 기준 대략 1분당 글자 수
 
 
-def write_script(s: Settings, topic: str, minutes: int, tone: str, extra: str = "") -> str:
+RULES = """- 내레이션으로 읽을 문장만 출력 (장면 지시문, 괄호, 화자 표시, 마크다운, 이모지, 소제목 금지)
+- 문장은 짧고 말하듯 자연스럽게, 문단 사이 빈 줄
+- 중간중간 궁금증을 유발하는 전환 문장 사용"""
+
+
+def write_script(s: Settings, topic: str, minutes: int, tone: str, extra: str = "",
+                 progress=None) -> str:
+    """짧으면 한 번에, 길면(5분 이상) 목차를 먼저 만들고 파트별로 나눠 쓴다 (시간 초과 방지 + 품질 향상)."""
     target = minutes * CHARS_PER_MIN
-    prompt = f"""당신은 조회수 높은 한국 유튜브 롱폼 채널의 전문 대본 작가입니다.
+    if minutes <= 4:
+        prompt = f"""당신은 조회수 높은 한국 유튜브 채널의 전문 대본 작가입니다.
 주제: {topic}
 분위기/장르: {tone}
 목표 길이: 약 {minutes}분 분량 (공백 포함 약 {target}자)
@@ -17,12 +25,44 @@ def write_script(s: Settings, topic: str, minutes: int, tone: str, extra: str = 
 
 규칙:
 - 첫 2~3문장은 시청자를 붙잡는 강력한 훅으로 시작
-- 내레이션으로 읽을 문장만 출력 (장면 지시문, 괄호, 화자 표시, 마크다운, 이모지 금지)
-- 문장은 짧고 말하듯 자연스럽게, 문단 사이 빈 줄
-- 중간중간 궁금증을 유발하는 전환 문장 사용
+{RULES}
 - 마지막은 구독/좋아요 유도 한 문장으로 마무리"""
-    text = llm.generate(s, prompt)
-    return clean_script(text)
+        return clean_script(llm.generate(s, prompt))
+
+    n = max(2, round(minutes / 2.5))  # 파트 하나 ≈ 2~3분
+    per = target // n
+    outline = llm.generate_json(s, f"""유튜브 롱폼 영상({minutes}분)의 목차를 만드세요.
+주제: {topic}
+분위기/장르: {tone}
+추가 요청: {extra or '없음'}
+정확히 {n}개 파트. 기승전결/반전이 살아 있게, 시청자가 끝까지 보게 구성.
+JSON: {{"parts": [{{"title": "파트 제목", "summary": "이 파트에서 다룰 내용 2~3문장"}}]}}""")
+    parts = outline.get("parts", []) if isinstance(outline, dict) else outline
+    parts = [p for p in parts if isinstance(p, dict)][:n] or [{"title": topic, "summary": topic}]
+    plan_txt = "\n".join(f"{i + 1}. {p.get('title', '')}: {p.get('summary', '')}" for i, p in enumerate(parts))
+
+    written: list[str] = []
+    for i, part in enumerate(parts):
+        if progress:
+            progress(0.05 + 0.25 * i / len(parts), f"AI 가 대본 쓰는 중… (파트 {i + 1}/{len(parts)})")
+        first, last = i == 0, i == len(parts) - 1
+        prev = written[-1][-600:] if written else "(없음 — 영상의 시작)"
+        prompt = f"""당신은 조회수 높은 한국 유튜브 롱폼 채널의 전문 대본 작가입니다.
+주제: {topic} / 분위기: {tone} / 추가 요청: {extra or '없음'}
+전체 목차:
+{plan_txt}
+
+지금은 파트 {i + 1} 「{part.get('title', '')}」 만 쓰세요: {part.get('summary', '')}
+분량: 공백 포함 약 {per}자
+직전 내용의 끝부분 (자연스럽게 이어서, 반복 금지):
+{prev}
+
+규칙:
+{RULES}
+{'- 첫 2~3문장은 시청자를 붙잡는 강력한 훅으로 시작' if first else '- 인사나 도입부 없이 바로 이어서 시작'}
+{'- 마지막은 여운 있는 마무리 + 구독/좋아요 유도 한 문장' if last else '- 다음 파트가 궁금해지게 끝내기 (영상이 끝나는 듯한 인사 금지)'}"""
+        written.append(clean_script(llm.generate(s, prompt)))
+    return "\n\n".join(written)
 
 
 def clean_script(text: str) -> str:

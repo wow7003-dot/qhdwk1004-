@@ -13,9 +13,10 @@ class LLMError(RuntimeError):
 
 
 def _gemini(s: Settings, prompt: str, json_mode: bool) -> str:
+    """스트리밍으로 받는다: 긴 대본도 중간중간 데이터가 와서 '시간 초과'가 나지 않음."""
     if not s.gemini_api_key:
         raise LLMError("Gemini API 키가 없습니다. https://aistudio.google.com/apikey 에서 무료로 발급하세요.")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{s.gemini_model}:generateContent"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{s.gemini_model}:streamGenerateContent"
     body = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.9, "maxOutputTokens": 16384},
@@ -24,19 +25,35 @@ def _gemini(s: Settings, prompt: str, json_mode: bool) -> str:
         body["generationConfig"]["responseMimeType"] = "application/json"
     last = None
     for attempt in range(4):
-        r = requests.post(url, params={"key": s.gemini_api_key}, json=body, timeout=180)
-        if r.status_code == 429 or r.status_code >= 500:   # 무료 티어 분당 제한 → 잠시 대기 후 재시도
-            last = r.text[:300]
-            time.sleep(15 * (attempt + 1))
-            continue
-        if r.status_code != 200:
-            raise LLMError(f"Gemini 오류 {r.status_code}: {r.text[:500]}")
-        data = r.json()
         try:
-            return "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
-        except (KeyError, IndexError):
-            raise LLMError(f"Gemini 응답 해석 실패: {json.dumps(data)[:500]}")
-    raise LLMError(f"Gemini 요청 한도 초과(잠시 후 다시 시도): {last}")
+            with requests.post(url, params={"key": s.gemini_api_key, "alt": "sse"}, json=body,
+                               stream=True, timeout=(20, 300)) as r:
+                if r.status_code == 429 or r.status_code >= 500:  # 무료 티어 분당 제한 → 잠시 대기 후 재시도
+                    last = f"{r.status_code} {r.text[:300]}"
+                    time.sleep(20 * (attempt + 1))
+                    continue
+                if r.status_code == 404:
+                    raise LLMError(f"모델 '{s.gemini_model}' 을 찾을 수 없습니다. 설정에서 모델 이름을 "
+                                   "'gemini-flash-latest' 또는 AI Studio 에 보이는 이름으로 바꾸세요.")
+                if r.status_code != 200:
+                    raise LLMError(f"Gemini 오류 {r.status_code}: {r.text[:500]}")
+                out = []
+                for line in r.iter_lines(decode_unicode=True):
+                    if not line or not line.startswith("data:"):
+                        continue
+                    data = json.loads(line[5:].strip())
+                    for cand in data.get("candidates", []):
+                        for part in cand.get("content", {}).get("parts", []):
+                            if not part.get("thought"):
+                                out.append(part.get("text", ""))
+                text = "".join(out)
+                if text.strip():
+                    return text
+                last = "빈 응답"
+        except (requests.Timeout, requests.ConnectionError) as e:  # 네트워크 지연 → 재시도
+            last = str(e)
+            time.sleep(5)
+    raise LLMError(f"Gemini 요청 실패 (잠시 후 다시 시도하세요): {last}")
 
 
 def _ollama(s: Settings, prompt: str, json_mode: bool) -> str:

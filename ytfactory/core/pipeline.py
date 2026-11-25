@@ -43,7 +43,7 @@ def plan(s: Settings, *, topic: str = "", script_text: str = "", minutes: int = 
         if not use_llm:
             raise llm.LLMError("대본을 직접 넣거나, Gemini 키/Ollama 를 설정해 AI 대본 생성을 켜세요.")
         progress(0.05, "AI 가 대본을 쓰는 중…")
-        script_text = sc.write_script(s, topic, minutes, tone, extra)
+        script_text = sc.write_script(s, topic, minutes, tone, extra, progress=progress)
     script_text = sc.clean_script(script_text)
     scenes = sc.split_scenes(script_text)
     progress(0.35, f"장면 {len(scenes)}개로 분할 완료")
