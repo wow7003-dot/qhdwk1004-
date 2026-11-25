@@ -1,0 +1,63 @@
+{
+  "enabledPlugins": {
+    "superpowers@superpowers-dev": true,
+    "mattpocock-skills@mattpocock": true,
+    "ecc@ecc": true,
+    "last30days@last30days-skill": true,
+    "document-skills@anthropic-agent-skills": true,
+    "example-skills@anthropic-agent-skills": true,
+    "ffmpeg-skill@ffmpeg-skill": true,
+    "modern-web-guidance@googlechrome": true,
+    "plannotator@plannotator": true
+  },
+  "extraKnownMarketplaces": {
+    "superpowers-dev": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers"
+      }
+    },
+    "mattpocock": {
+      "source": {
+        "source": "github",
+        "repo": "mattpocock/skills"
+      }
+    },
+    "ecc": {
+      "source": {
+        "source": "github",
+        "repo": "affaan-m/everything-claude-code"
+      }
+    },
+    "last30days-skill": {
+      "source": {
+        "source": "github",
+        "repo": "mvanhorn/last30days-skill"
+      }
+    },
+    "anthropic-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills"
+      }
+    },
+    "ffmpeg-skill": {
+      "source": {
+        "source": "github",
+        "repo": "kajisho5/ffmpeg-skill"
+      }
+    },
+    "googlechrome": {
+      "source": {
+        "source": "github",
+        "repo": "GoogleChrome/modern-web-guidance"
+      }
+    },
+    "plannotator": {
+      "source": {
+        "source": "github",
+        "repo": "backnotprop/plannotator"
+      }
+    }
+  }
+}
